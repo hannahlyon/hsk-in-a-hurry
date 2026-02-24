@@ -246,6 +246,7 @@ def create_checkout(req: CheckoutRequest):
             success_url=f"{WEBSITE_BASE_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{WEBSITE_BASE_URL}/",
             metadata={"user_id": str(user["id"]), "email": req.email},
+            allow_promotion_codes=True,
         )
         return {"url": session.url}
     except stripe.StripeError as exc:

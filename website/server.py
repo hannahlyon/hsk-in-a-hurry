@@ -300,7 +300,7 @@ async def stripe_webhook(request: Request):
 # Posts API
 # ---------------------------------------------------------------------------
 @app.get("/api/posts")
-def list_posts(current_user: dict = Depends(_require_paid)):
+def list_posts():
     return [
         {
             "id": p["id"],

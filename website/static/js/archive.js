@@ -1,92 +1,40 @@
-/* Archive page: auth check, post fetching, search, render */
+/* Archive page: post fetching, search, render */
 
 const API = '';
 let allPosts = [];
+let userStatus = null; // null = not logged in, 'inactive', or 'active'
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────
 
 async function init() {
+  document.getElementById('archiveContent').style.display = 'block';
+
   const token = localStorage.getItem('hsk_token');
-
-  if (!token) {
-    showGate('login');
-    return;
+  if (token) {
+    try {
+      const meRes = await fetch(`${API}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (meRes.ok) {
+        const user = await meRes.json();
+        userStatus = user.subscription_status;
+        document.getElementById('signOutBtn').style.display = 'inline-block';
+        const greeting = document.getElementById('userGreeting');
+        if (greeting) greeting.textContent = `Hi, ${user.name.split(' ')[0]}`;
+      } else if (meRes.status === 401) {
+        localStorage.removeItem('hsk_token');
+      }
+    } catch (_) { /* non-fatal — still show titles */ }
   }
 
-  try {
-    const meRes = await fetch(`${API}/api/auth/me`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    if (meRes.status === 401) {
-      localStorage.removeItem('hsk_token');
-      showGate('login');
-      return;
-    }
-
-    if (!meRes.ok) {
-      showGate('error');
-      return;
-    }
-
-    const user = await meRes.json();
-
-    if (user.subscription_status !== 'active') {
-      showGate('inactive');
-      return;
-    }
-
-    // User is authenticated and paid — show archive
-    document.getElementById('authGate').style.display = 'none';
-    document.getElementById('archiveContent').style.display = 'block';
-    document.getElementById('signOutBtn').style.display = 'inline-block';
-
-    const greeting = document.getElementById('userGreeting');
-    if (greeting) greeting.textContent = `Hi, ${user.name.split(' ')[0]}`;
-
-    await loadPosts(token);
-
-  } catch (err) {
-    showGate('error');
-  }
-}
-
-// ── Auth gate ─────────────────────────────────────────────────────────────
-
-function showGate(reason) {
-  document.getElementById('authGate').style.display = 'block';
-  document.getElementById('archiveContent').style.display = 'none';
-
-  const heading = document.getElementById('gateHeading');
-  const message = document.getElementById('gateMessage');
-  const loginBtn = document.getElementById('gateLoginBtn');
-  const subBtn   = document.getElementById('gateSubscribeBtn');
-
-  if (reason === 'login') {
-    heading.textContent = 'Log in to read the archive';
-    message.textContent = 'This page is for subscribers only. Please log in to continue.';
-    loginBtn.style.display = 'inline-block';
-    subBtn.style.display   = 'none';
-  } else if (reason === 'inactive') {
-    heading.textContent = 'No active subscription';
-    message.textContent = 'Your account exists but doesn\'t have an active subscription yet. Subscribe to get full access.';
-    loginBtn.style.display = 'none';
-    subBtn.style.display   = 'inline-block';
-  } else {
-    heading.textContent = 'Something went wrong';
-    message.textContent = 'We couldn\'t verify your session. Please try logging in again.';
-    loginBtn.style.display = 'inline-block';
-    subBtn.style.display   = 'none';
-  }
+  await loadPosts();
 }
 
 // ── Posts ─────────────────────────────────────────────────────────────────
 
-async function loadPosts(token) {
+async function loadPosts() {
   try {
-    const res = await fetch(`${API}/api/posts`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
+    const res = await fetch(`${API}/api/posts`);
 
     if (!res.ok) {
       document.getElementById('loadingState').style.display = 'none';
@@ -170,14 +118,36 @@ document.getElementById('searchInput').addEventListener('keydown', (e) => {
 // ── Post modal ────────────────────────────────────────────────────────────
 
 async function openPost(postId) {
-  const token = localStorage.getItem('hsk_token');
-  if (!token) return;
-
   document.getElementById('modalTitle').textContent = 'Loading…';
   document.getElementById('modalMeta').textContent = '';
-  document.getElementById('modalBody').innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+  document.getElementById('modalBody').innerHTML =
+    '<div class="loading-state"><div class="spinner"></div></div>';
   document.getElementById('postModal').classList.add('open');
 
+  const token = localStorage.getItem('hsk_token');
+
+  if (!token) {
+    document.getElementById('modalTitle').textContent = 'Subscribers only';
+    document.getElementById('modalBody').innerHTML = `
+      <div style="text-align:center;padding:2rem 0">
+        <p style="margin-bottom:1.5rem">Log in or subscribe to read the full issue.</p>
+        <a href="/login" class="btn btn--coral" style="margin-right:.75rem">Log In</a>
+        <a href="/#subscribe" class="btn btn--ghost">Subscribe →</a>
+      </div>`;
+    return;
+  }
+
+  if (userStatus !== 'active') {
+    document.getElementById('modalTitle').textContent = 'Subscribers only';
+    document.getElementById('modalBody').innerHTML = `
+      <div style="text-align:center;padding:2rem 0">
+        <p style="margin-bottom:1.5rem">Subscribe to get full access to all issues.</p>
+        <a href="/#subscribe" class="btn btn--coral">Subscribe →</a>
+      </div>`;
+    return;
+  }
+
+  // Active subscriber — fetch full post
   try {
     const res = await fetch(`${API}/api/posts/${postId}`, {
       headers: { 'Authorization': `Bearer ${token}` },

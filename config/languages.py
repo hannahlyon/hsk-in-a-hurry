@@ -6,6 +6,7 @@ LEVELS_CEFR = ["A1", "A2", "B1", "B2", "C1", "C2"]
 LEVELS_JLPT = ["N5", "N4", "N3", "N2", "N1"]
 LEVELS_HSK_CLASSIC = ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6"]
 LEVELS_HSK_NEW = [f"HSK{i}" for i in range(1, 10)]
+LEVELS_TOPIK = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6"]
 
 
 @dataclass
@@ -63,6 +64,18 @@ EXAM_CONFIGS: dict[str, ExamConfig] = {
         },
         description="Hanyu Shuiping Kaoshi (Chinese Proficiency Test)",
     ),
+    "korean_topik": ExamConfig(
+        language="Korean",
+        exam="TOPIK",
+        levels=LEVELS_TOPIK,
+        chroma_collection="lang_korean_topik",
+        scrape_urls={
+            "grammar_topik1": "https://topikguide.com/topik-grammar/topik-1-grammar/",
+            "grammar_topik2": "https://topikguide.com/topik-grammar/topik-2-grammar/",
+            "vocabulary": "https://en.wiktionary.org/wiki/Wiktionary:Frequency_lists/Korean",
+        },
+        description="Test of Proficiency in Korean",
+    ),
 }
 
 # Map display name → config key
@@ -71,6 +84,7 @@ LANGUAGE_OPTIONS = {
     "French (DELF/DALF)": "french_delf",
     "Japanese (JLPT)": "japanese_jlpt",
     "Mandarin Chinese (HSK)": "mandarin_hsk",
+    "Korean (TOPIK)": "korean_topik",
     "Custom Language": "custom",
 }
 

@@ -35,6 +35,9 @@ def _get_scraper(exam_key: str):
     elif exam_key == "mandarin_hsk":
         from scraper.mandarin_hsk import MandarinHSKScraper
         return MandarinHSKScraper()
+    elif exam_key == "korean_topik":
+        from scraper.korean_topik import KoreanTOPIKScraper
+        return KoreanTOPIKScraper()
     else:
         from scraper.generic_scraper import GenericScraper
         return GenericScraper()

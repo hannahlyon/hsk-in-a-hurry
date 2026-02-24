@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HSK in a Hurry — Learn Mandarin Fast</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="/" class="nav__logo">HSK in a Hurry</a>
+    <ul class="nav__links">
+      <li><a href="/archive" class="nav-text">Archive</a></li>
+      <li>
+        <a href="https://www.instagram.com/hskinahurry/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--mid)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </li>
+      <li><a href="/login" class="btn btn--ghost">Log In</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="container">
+    <span class="hero__eyebrow">Weekly Mandarin Newsletter</span>
+    <h1>Master HSK. One Story at a Time.</h1>
+    <p class="hero__sub">
+      A weekly newsletter that builds your Mandarin through real mini-stories,
+      grammar breakdowns, and curated vocabulary — all mapped to the HSK exam.
+    </p>
+    <div class="hero__cta">
+      <a href="#subscribe" class="btn btn--coral">Subscribe Now</a>
+      <a href="/archive" class="btn btn--ghost">Browse Archive</a>
+    </div>
+    <div>
+      <span class="hero__badge">📬 New issue every Monday</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="section">
+  <div class="container">
+    <div class="features__grid">
+
+      <div class="feature-card">
+        <div class="feature-card__accent feature-card__accent--coral"></div>
+        <div class="feature-card__body">
+          <div class="feature-card__icon">📖</div>
+          <h3>Story-Driven Learning</h3>
+          <p>
+            Each issue features a short story written for the HSK exam — complete with
+            pinyin, character breakdowns, and an English translation.
+          </p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card__accent feature-card__accent--yellow"></div>
+        <div class="feature-card__body">
+          <div class="feature-card__icon">🗂️</div>
+          <h3>Curated Vocabulary</h3>
+          <p>
+            Every issue spotlights 10–15 high-frequency words from the official HSK
+            wordlists, shown in context so they actually stick.
+          </p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card__accent feature-card__accent--purple"></div>
+        <div class="feature-card__body">
+          <div class="feature-card__icon">📐</div>
+          <h3>Grammar Deep-Dives</h3>
+          <p>
+            A dedicated grammar section breaks down one key pattern per issue —
+            with example sentences and comparison notes.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Benefits ── -->
+<section class="section section--alt">
+  <div class="container">
+    <div class="benefits__inner">
+      <div>
+        <h2 class="benefits__heading">Why you'll love it</h2>
+        <p style="color:var(--mid);">
+          Built for busy learners who can't spend hours a day studying but still
+          want to make real progress toward their HSK goal.
+        </p>
+        <ul class="benefits__list">
+          <li>Content matched to the HSK exam (levels 1–6)</li>
+          <li>Consistent exposure without the overwhelm</li>
+          <li>Native-speaker patterns, not textbook Chinese</li>
+          <li>Full archive access — read at your own pace</li>
+          <li>Works alongside any other study method</li>
+          <li>Cancel any time — no questions asked</li>
+          <li><strong>Free bonus:</strong> get our <em>700 Chengyu Guide</em> PDF instantly on signup</li>
+        </ul>
+      </div>
+      <div class="benefits__visual">
+        <div class="benefits__visual-number">52</div>
+        <div class="benefits__visual-label">issues per year, one story each</div>
+        <div style="margin-top:28px;padding-top:28px;border-top:1px solid var(--border)">
+          <div class="benefits__visual-number" style="font-size:3rem;">HSK 1–6</div>
+          <div class="benefits__visual-label">All levels covered</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Subscribe ── -->
+<section class="subscribe" id="subscribe">
+  <div class="container">
+    <div class="subscribe__card">
+      <h2>Start Learning Today</h2>
+      <p class="subtitle">Full archive access · Cancel any time</p>
+
+      <div style="background:var(--yellow);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:24px;font-size:.95rem;line-height:1.6">
+        🎁 <strong>Free bonus on signup:</strong> receive our <em>700 Chengyu Guide</em> — a curated PDF of 700 classical Chinese idioms with meanings and example sentences, delivered straight to your inbox.
+      </div>
+
+      <div class="error-msg" id="signupError"></div>
+
+      <form id="signupForm">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" name="name" placeholder="Li Wei" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+                 placeholder="At least 8 characters" minlength="8" required />
+        </div>
+        <button type="submit" class="btn btn--coral btn--full" id="submitBtn">
+          Subscribe & Pay →
+        </button>
+      </form>
+
+      <p class="form-notice">
+        🔒 Secure payment via Stripe. Your card details never touch our servers.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__logo">HSK in a Hurry</div>
+    <ul class="footer__links">
+      <li><a href="/login">Log In</a></li>
+      <li><a href="/archive">Archive</a></li>
+      <li><a href="#" id="privacyLink">Privacy Policy</a></li>
+      <li><a href="#" id="termsLink">Terms of Service</a></li>
+    </ul>
+    <p class="footer__copy">© 2026 HSK in a Hurry. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ── Privacy Modal ── -->
+<div class="modal-backdrop" id="privacyModal">
+  <div class="modal">
+    <button class="modal__close" onclick="closeModal('privacyModal')">×</button>
+    <h2>Privacy Policy</h2>
+    <div class="policy-content">
+      <h3>What we collect</h3>
+      <p>We collect your name, email address, and encrypted password when you subscribe. Payment is processed entirely by Stripe — we never see or store card details.</p>
+      <h3>How we use it</h3>
+      <p>We use your email solely to send the newsletter and account-related notifications. We do not sell or share your data with third parties.</p>
+      <h3>Data retention</h3>
+      <p>You may request deletion of your account and all associated data at any time by emailing us.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Terms Modal ── -->
+<div class="modal-backdrop" id="termsModal">
+  <div class="modal">
+    <button class="modal__close" onclick="closeModal('termsModal')">×</button>
+    <h2>Terms of Service</h2>
+    <div class="policy-content">
+      <h3>Subscription</h3>
+      <p>Your subscription grants you access to the full newsletter archive. You may cancel at any time from your Stripe billing portal; access remains until the end of the paid period.</p>
+      <h3>Content</h3>
+      <p>All newsletter content is for personal, non-commercial use. Redistribution or resale is prohibited.</p>
+      <h3>Liability</h3>
+      <p>Content is provided for educational purposes only. We make no guarantees about exam outcomes.</p>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>

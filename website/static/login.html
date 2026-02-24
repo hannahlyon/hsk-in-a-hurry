@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In — HSK in a Hurry</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+<div class="centered-page">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:8px">
+      <a href="/" style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--mid)">
+        HSK in a Hurry
+      </a>
+    </div>
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to access your archive</p>
+
+    <div class="error-msg" id="loginError"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn btn--coral btn--full" id="loginBtn">Sign In</button>
+    </form>
+
+    <div class="footer-link">
+      Don't have an account? <a href="/#subscribe">Subscribe →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+function showError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  btn.textContent = 'Signing in…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      showError(err.detail || 'Login failed. Please try again.');
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+      return;
+    }
+
+    const { token } = await res.json();
+    localStorage.setItem('hsk_token', token);
+    window.location.href = '/archive';
+
+  } catch (err) {
+    showError('Network error. Please try again.');
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

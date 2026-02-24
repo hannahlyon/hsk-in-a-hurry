@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Archive — HSK in a Hurry</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="/" class="nav__logo">HSK in a Hurry</a>
+    <ul class="nav__links">
+      <li id="userGreeting" style="color:var(--mid);font-size:.9rem"></li>
+      <li>
+        <a href="https://www.instagram.com/hskinahurry/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--mid)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </li>
+      <li><a href="#" id="signOutBtn" class="btn btn--ghost" style="display:none">Sign Out</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Page hero ── -->
+<div class="page-hero">
+  <div class="container">
+    <h1>Newsletter Archive</h1>
+    <p>All past issues — read at your own pace</p>
+  </div>
+</div>
+
+<!-- ── Auth gate (shown when not logged in or not paid) ── -->
+<div id="authGate" style="display:none">
+  <div class="container">
+    <div class="auth-gate">
+      <h2 id="gateHeading">Access required</h2>
+      <p id="gateMessage">Please log in to view the archive.</p>
+      <div class="actions">
+        <a href="/login" class="btn btn--coral" id="gateLoginBtn">Log In</a>
+        <a href="/#subscribe" class="btn btn--ghost" id="gateSubscribeBtn" style="display:none">Subscribe →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Archive content (shown when authenticated + paid) ── -->
+<div id="archiveContent" style="display:none">
+  <div class="container">
+    <div class="archive-controls">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search issues…" />
+        <button onclick="filterPosts()">Search</button>
+      </div>
+    </div>
+
+    <div id="loadingState" class="loading-state">
+      <div class="spinner"></div>
+      <span>Loading archive…</span>
+    </div>
+
+    <div id="emptyState" style="display:none;text-align:center;padding:60px 0;color:var(--mid)">
+      <p style="font-size:1.1rem">No issues found matching your search.</p>
+    </div>
+
+    <div class="posts-grid" id="postsGrid"></div>
+  </div>
+</div>
+
+<!-- ── Post reader modal ── -->
+<div class="modal-backdrop" id="postModal">
+  <div class="modal">
+    <button class="modal__close" onclick="closePostModal()">×</button>
+    <h2 id="modalTitle"></h2>
+    <p class="post-meta" id="modalMeta"></p>
+    <div class="post-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="/static/js/archive.js"></script>
+</body>
+</html>

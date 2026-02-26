@@ -184,7 +184,7 @@ def render():
         st.info("No generated posts yet. Use Section 1 or Tab 2 to create some.")
     else:
         post_map = {
-            f"[id={p['id']}] [{p['level']}] {p['title']}  ({(p['created_at'] or '')[:10]})": p
+            f"[id={p['id']}] [{p['level']}] {p['title']}  ({str(p['created_at'] or '')[:10]})": p
             for p in all_posts
         }
         selected_post = post_map[

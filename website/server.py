@@ -17,7 +17,7 @@ import markdown as md_lib
 import stripe
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 
@@ -31,7 +31,7 @@ STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
 JWT_SECRET = os.getenv("JWT_SECRET", "change-me")
-WEBSITE_BASE_URL = os.getenv("WEBSITE_BASE_URL", "http://localhost:8001")
+WEBSITE_BASE_URL = os.getenv("LOCAL_DEV_URL") or os.getenv("WEBSITE_BASE_URL", "http://localhost:8001")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_HOURS = 24
 
@@ -117,6 +117,14 @@ def _list_md_posts() -> list:
 app = FastAPI(title="HSK in a Hurry")
 app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")
 
+try:
+    from api.main import router as _automation_router
+    app.include_router(_automation_router, prefix="/automation")
+except Exception as _e:
+    import traceback
+    print("WARNING: automation router failed to load:", _e)
+    traceback.print_exc()
+
 
 # ---------------------------------------------------------------------------
 # Pydantic models
@@ -184,6 +192,11 @@ def index():
 @app.get("/archive")
 def archive():
     return FileResponse(_STATIC / "archive.html")
+
+
+@app.get("/newsletters")
+def newsletters_redirect():
+    return RedirectResponse(url="/archive", status_code=301)
 
 
 @app.get("/login")

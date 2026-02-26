@@ -7,7 +7,7 @@ from typing import List, Optional
 # Ensure project root is on sys.path so all project imports work
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -25,6 +25,8 @@ from rag.retriever import retrieve_for_generation, get_retrieval_ids
 from substack.auth import SubstackAuthError
 from substack.publisher import create_draft, publish_draft
 from tabs.tab_social import PLATFORMS, _generate_caption, _generate_image, _make_dalle_prompt
+
+router = APIRouter()
 
 app = FastAPI(title="Newsletter Automation API")
 
@@ -93,13 +95,13 @@ def _auto_theme(language: str, exam: str, level: str) -> str:
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
-@app.get("/newsletters")
+@router.get("/newsletters")
 def list_newsletters():
     """Return all newsletters. Make uses this to resolve newsletter_id."""
     return get_newsletters()
 
 
-@app.post("/generate-content", response_model=GenerateContentResponse)
+@router.post("/generate-content", response_model=GenerateContentResponse)
 def generate_content_endpoint(req: GenerateContentRequest):
     """Run retrieve → generate → title → save; returns post_id + full content."""
     newsletter = get_newsletter(req.newsletter_id)
@@ -144,7 +146,7 @@ def generate_content_endpoint(req: GenerateContentRequest):
     )
 
 
-@app.post("/generate-social", response_model=GenerateSocialResponse)
+@router.post("/generate-social", response_model=GenerateSocialResponse)
 def generate_social_endpoint(req: GenerateSocialRequest, request: Request):
     """Generate DALL-E image + caption for each platform; returns assets with image URLs."""
     post = get_generated_post(req.post_id)
@@ -155,7 +157,6 @@ def generate_social_endpoint(req: GenerateSocialRequest, request: Request):
     if unknown:
         raise HTTPException(status_code=400, detail=f"Unknown platforms: {unknown}")
 
-    base_url = str(request.base_url).rstrip("/")
     assets: List[SocialAsset] = []
 
     for platform in req.platforms:
@@ -180,7 +181,7 @@ def generate_social_endpoint(req: GenerateSocialRequest, request: Request):
             image_size=specs["image_size"],
         )
 
-        image_url = f"{base_url}/images/{post['id']}/{platform_slug}.png"
+        image_url = str(request.url_for("serve_image", post_id=post["id"], platform_slug=f"{platform_slug}.png"))
         assets.append(SocialAsset(
             platform=platform,
             social_post_id=social_post_id,
@@ -205,7 +206,7 @@ class PublishSubstackResponse(BaseModel):
     published: bool
 
 
-@app.post("/publish-substack", response_model=PublishSubstackResponse)
+@router.post("/publish-substack", response_model=PublishSubstackResponse)
 def publish_substack_endpoint(req: PublishSubstackRequest):
     """Create a Substack draft (and optionally publish it) from a generated post."""
     post = get_generated_post(req.post_id)
@@ -262,10 +263,14 @@ def publish_substack_endpoint(req: PublishSubstackRequest):
     )
 
 
-@app.get("/images/{post_id}/{platform_slug}")
+@router.get("/images/{post_id}/{platform_slug}")
 def serve_image(post_id: int, platform_slug: str):
     """Serve a saved PNG as binary so Make can pass it to platform upload modules."""
     img_path = DATA_DIR / "social_images" / str(post_id) / platform_slug
     if not img_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(img_path), media_type="image/png")
+
+
+# Wire router into standalone app (used when running api/main.py directly)
+app.include_router(router)

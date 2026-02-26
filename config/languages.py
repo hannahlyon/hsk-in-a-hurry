@@ -72,7 +72,7 @@ EXAM_CONFIGS: dict[str, ExamConfig] = {
         scrape_urls={
             "grammar_topik1": "https://topikguide.com/topik-grammar/topik-1-grammar/",
             "grammar_topik2": "https://topikguide.com/topik-grammar/topik-2-grammar/",
-            "vocabulary": "https://en.wiktionary.org/wiki/Wiktionary:Frequency_lists/Korean",
+            "vocabulary": "https://en.wiktionary.org/wiki/Wiktionary:Frequency_lists/Korean_5800",
         },
         description="Test of Proficiency in Korean",
     ),

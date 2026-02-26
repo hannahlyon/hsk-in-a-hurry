@@ -341,13 +341,13 @@ def render():
             # ── Summary table ───────────────────────────────────
             df = pd.DataFrame(filtered)[["id", "level", "content_type", "title", "created_at"]]
             df.columns = ["ID", "Level", "Format", "Title", "Created"]
-            df["Created"] = df["Created"].str[:10]
+            df["Created"] = df["Created"].astype(str).str[:10]
             st.dataframe(df, use_container_width=True, hide_index=True)
 
             # ── Post viewer ─────────────────────────────────────
             st.markdown("**View post**")
             post_labels = [
-                f"[{p['level']}] {p['title']}  ({(p['created_at'] or '')[:10]})"
+                f"[{p['level']}] {p['title']}  ({str(p['created_at'] or '')[:10]})"
                 for p in filtered
             ]
             chosen_label = st.selectbox(

@@ -123,7 +123,7 @@ def render():
         return
 
     post_map = {
-        f"[{p['level']}] {p['title']}  ({p['created_at'][:10]})": p
+        f"[{p['level']}] {p['title']}  ({str(p['created_at'] or '')[:10]})": p
         for p in posts
     }
     post = post_map[st.selectbox("Lesson", list(post_map.keys()), key="social_post")]

@@ -95,22 +95,63 @@ function renderPosts(posts) {
 
 // ── Search ────────────────────────────────────────────────────────────────
 
-function filterPosts() {
-  const query = document.getElementById('searchInput').value.trim().toLowerCase();
-  if (!query) {
-    renderPosts(allPosts);
-    return;
+function _scorePost(post, terms) {
+  // Weight: title > level/content_type > exam
+  const fields = [
+    { value: post.title        || '', weight: 3 },
+    { value: post.level        || '', weight: 2 },
+    { value: post.content_type || '', weight: 2 },
+    { value: post.exam         || '', weight: 1 },
+  ];
+  let score = 0;
+  for (const term of terms) {
+    for (const { value, weight } of fields) {
+      const v = value.toLowerCase();
+      if (v === term)          score += weight * 2; // exact field match
+      else if (v.includes(term)) score += weight;   // partial match
+    }
   }
-  const filtered = allPosts.filter(p =>
-    (p.title || '').toLowerCase().includes(query)
-  );
-  renderPosts(filtered);
+  return score;
 }
 
+function filterPosts() {
+  const raw = document.getElementById('searchInput').value.trim().toLowerCase();
+  const countEl = document.getElementById('resultCount');
+
+  if (!raw) {
+    renderPosts(allPosts);
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+
+  const terms = raw.split(/\s+/).filter(Boolean);
+  const results = allPosts
+    .map(p => ({ post: p, score: _scorePost(p, terms) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ post }) => post);
+
+  if (countEl) {
+    countEl.textContent = results.length === 0
+      ? 'No matches found'
+      : `${results.length} result${results.length !== 1 ? 's' : ''}`;
+  }
+
+  renderPosts(results);
+}
+
+let _searchTimer;
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(filterPosts, 200);
+});
+
 document.getElementById('searchInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') filterPosts();
+  if (e.key === 'Enter') { clearTimeout(_searchTimer); filterPosts(); }
   if (e.key === 'Escape') {
     document.getElementById('searchInput').value = '';
+    const countEl = document.getElementById('resultCount');
+    if (countEl) countEl.textContent = '';
     renderPosts(allPosts);
   }
 });

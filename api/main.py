@@ -1,4 +1,5 @@
 """FastAPI webhook server — exposes the generation pipeline to Make.com."""
+import random
 import re
 import sys
 from pathlib import Path
@@ -11,6 +12,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from config.languages import EXAM_CONFIGS
 from config.settings import DATA_DIR, SUBSTACK_COOKIE
 from database.db import (
     init_db,
@@ -74,6 +76,16 @@ class GenerateSocialResponse(BaseModel):
     assets: List[SocialAsset]
 
 
+class RandomParamsResponse(BaseModel):
+    newsletter_id: int
+    level: str
+    theme: str
+    content_format: str
+
+
+_CONTENT_FORMATS = ["blurb", "story", "dialogue", "matching"]
+
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _auto_theme(language: str, exam: str, level: str) -> str:
@@ -99,6 +111,35 @@ def _auto_theme(language: str, exam: str, level: str) -> str:
 def list_newsletters():
     """Return all newsletters. Make uses this to resolve newsletter_id."""
     return get_newsletters()
+
+
+@router.get("/random-params", response_model=RandomParamsResponse)
+def random_params_endpoint(newsletter_id: int):
+    """Return randomly selected level + content_format + Claude-generated theme for a newsletter."""
+    newsletter = get_newsletter(newsletter_id)
+    if not newsletter:
+        raise HTTPException(status_code=404, detail=f"Newsletter {newsletter_id} not found")
+
+    language = newsletter["language"]
+    exam = newsletter["exam"]
+
+    config = next(
+        (c for c in EXAM_CONFIGS.values() if c.language == language and c.exam == exam),
+        None,
+    )
+    if not config:
+        raise HTTPException(status_code=400, detail=f"No exam config found for {language} {exam}")
+
+    level = random.choice(config.levels)
+    content_format = random.choice(_CONTENT_FORMATS)
+    theme = _auto_theme(language, exam, level)
+
+    return RandomParamsResponse(
+        newsletter_id=newsletter_id,
+        level=level,
+        theme=theme,
+        content_format=content_format,
+    )
 
 
 @router.post("/generate-content", response_model=GenerateContentResponse)

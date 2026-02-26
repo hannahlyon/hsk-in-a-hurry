@@ -81,6 +81,7 @@ def _parse_md_file(path: Path) -> dict:
     title = meta.get("title") or slug.replace("-", " ").replace("_", " ").title()
     date_str = meta.get("date", "")
     level = meta.get("level", "")
+    exam = meta.get("exam", "HSK")
     tags = meta.get("tags", "")
 
     content_html = md_lib.markdown(body, extensions=["tables", "fenced_code"])
@@ -90,7 +91,7 @@ def _parse_md_file(path: Path) -> dict:
         "slug": slug,
         "title": title,
         "level": level,
-        "exam": "HSK",
+        "exam": exam,
         "content_type": tags.split(",")[0].strip() if tags else "story",
         "created_at": date_str,
         "content_html": content_html,

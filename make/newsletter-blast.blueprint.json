@@ -1,0 +1,126 @@
+{
+  "name": "Newsletter Blast — Generate & Send",
+  "flow": [
+    {
+      "id": 1,
+      "module": "util:ScheduleTrigger",
+      "version": 1,
+      "parameters": {
+        "interval": [
+          {
+            "unit": "week",
+            "value": 1,
+            "day": 1,
+            "time": "08:00"
+          }
+        ]
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": true,
+        "useNewZLibDecompression": true
+      },
+      "mapper": {
+        "url": "YOUR_API_BASE_URL/random-params?newsletter_id=1",
+        "method": "get",
+        "headers": [],
+        "qs": [],
+        "bodyType": "",
+        "parseResponse": true
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": {
+          "expect": {
+            "method": { "label": "GET" }
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": true,
+        "useNewZLibDecompression": true
+      },
+      "mapper": {
+        "url": "YOUR_API_BASE_URL/generate-content",
+        "method": "post",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "body": "{\"newsletter_id\": 1, \"level\": \"{{2.level}}\", \"theme\": \"{{2.theme}}\", \"content_format\": \"{{2.content_format}}\"}",
+        "parseResponse": true
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "restore": {
+          "expect": {
+            "method": { "label": "POST" }
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": true,
+        "useNewZLibDecompression": true
+      },
+      "mapper": {
+        "url": "YOUR_API_BASE_URL/send-lesson",
+        "method": "post",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "body": "{\"post_id\": {{3.post_id}}}",
+        "parseResponse": true
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 },
+        "restore": {
+          "expect": {
+            "method": { "label": "POST" }
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": true,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu2.make.com"
+  }
+}

@@ -1,19 +1,29 @@
 """FastAPI webhook server — exposes the generation pipeline to Make.com."""
 import random
 import re
+import smtplib
 import sys
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
 from typing import List, Optional
 
 # Ensure project root is on sys.path so all project imports work
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import markdown as md
+import stripe
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from config.languages import EXAM_CONFIGS
-from config.settings import DATA_DIR, SUBSTACK_COOKIE
+from config.settings import (
+    DATA_DIR, SUBSTACK_COOKIE,
+    TWITTER_API_KEY, TWITTER_API_SECRET,
+    TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET,
+    STRIPE_SECRET_KEY, EMAIL_FROM, EMAIL_APP_PASSWORD,
+)
 from database.db import (
     init_db,
     get_newsletter,
@@ -311,6 +321,127 @@ def serve_image(post_id: int, platform_slug: str):
     if not img_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(img_path), media_type="image/png")
+
+
+class PostTweetRequest(BaseModel):
+    text: str                              # tweet body — max 280 chars
+    social_post_id: Optional[int] = None  # optional: links tweet back to a social_post row
+
+
+class PostTweetResponse(BaseModel):
+    tweet_id: str
+    tweet_url: str
+    text: str
+    social_post_id: Optional[int] = None
+
+
+@router.post("/post-tweet", response_model=PostTweetResponse)
+def post_tweet_endpoint(req: PostTweetRequest):
+    """Post a tweet via Twitter API v2.
+
+    Make.com: add an HTTP module → POST /post-tweet with JSON body.
+    Required credentials: TWITTER_API_KEY, TWITTER_API_SECRET,
+    TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET in .env.
+    """
+    if not all([TWITTER_API_KEY, TWITTER_API_SECRET,
+                TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET]):
+        raise HTTPException(
+            status_code=503,
+            detail="Twitter credentials not configured. Set TWITTER_API_KEY, "
+                   "TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET in .env.",
+        )
+
+    if len(req.text) > 280:
+        raise HTTPException(status_code=422, detail=f"Tweet is {len(req.text)} chars — max 280.")
+
+    try:
+        import tweepy
+        client = tweepy.Client(
+            consumer_key=TWITTER_API_KEY,
+            consumer_secret=TWITTER_API_SECRET,
+            access_token=TWITTER_ACCESS_TOKEN,
+            access_token_secret=TWITTER_ACCESS_TOKEN_SECRET,
+        )
+        response = client.create_tweet(text=req.text)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Twitter API error: {exc}")
+
+    tweet_id = str(response.data["id"])
+    return PostTweetResponse(
+        tweet_id=tweet_id,
+        tweet_url=f"https://x.com/i/web/status/{tweet_id}",
+        text=req.text,
+        social_post_id=req.social_post_id,
+    )
+
+
+class SendLessonRequest(BaseModel):
+    post_id: int
+    subject: Optional[str] = None        # defaults to post title
+    test_emails: Optional[List[str]] = None  # if set, skips Stripe and sends only to these
+
+
+class SendLessonResponse(BaseModel):
+    post_id: int
+    title: str
+    recipients_count: int
+    email_from: str
+
+
+@router.post("/send-lesson", response_model=SendLessonResponse)
+def send_lesson_endpoint(req: SendLessonRequest):
+    """Fetch every active Stripe subscriber's email and BCC them the lesson."""
+    post = get_generated_post(req.post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail=f"Post {req.post_id} not found")
+    if not EMAIL_FROM or not EMAIL_APP_PASSWORD:
+        raise HTTPException(status_code=503, detail="EMAIL_FROM / EMAIL_APP_PASSWORD not configured")
+
+    # Collect recipient emails — use test override if provided, otherwise query Stripe
+    if req.test_emails:
+        emails = list(dict.fromkeys(req.test_emails))
+    else:
+        if not STRIPE_SECRET_KEY:
+            raise HTTPException(status_code=503, detail="STRIPE_SECRET_KEY not configured")
+        stripe.api_key = STRIPE_SECRET_KEY
+        emails = []
+        for sub in stripe.Subscription.list(status="active", expand=["data.customer"]).auto_paging_iter():
+            customer = sub.customer
+            email = customer.get("email") if isinstance(customer, dict) else getattr(customer, "email", None)
+            if email:
+                emails.append(email)
+        emails = list(dict.fromkeys(emails))
+
+    if not emails:
+        raise HTTPException(status_code=404, detail="No recipients found")
+
+    # Build multipart email
+    subject = req.subject or post["title"]
+    body_html = md.markdown(post["content_raw"] or "")
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = EMAIL_FROM
+    msg["To"] = EMAIL_FROM           # sender is the visible To recipient
+    msg["Bcc"] = ", ".join(emails)   # all subscribers hidden via BCC
+    msg.attach(MIMEText(post["content_raw"] or "", "plain", "utf-8"))
+    msg.attach(MIMEText(body_html, "html", "utf-8"))
+
+    # Send via Gmail SMTP
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(EMAIL_FROM, EMAIL_APP_PASSWORD)
+            server.sendmail(EMAIL_FROM, [EMAIL_FROM] + emails, msg.as_string())
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Email send failed: {exc}")
+
+    return SendLessonResponse(
+        post_id=req.post_id,
+        title=post["title"],
+        recipients_count=len(emails),
+        email_from=EMAIL_FROM,
+    )
 
 
 # Wire router into standalone app (used when running api/main.py directly)

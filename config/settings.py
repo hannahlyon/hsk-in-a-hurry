@@ -11,6 +11,19 @@ ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 SUBSTACK_COOKIE: str = os.getenv("SUBSTACK_COOKIE", "")
 
+# Twitter / X API v2 (OAuth 1.0a User Context — required for posting)
+TWITTER_API_KEY: str = os.getenv("TWITTER_API_KEY", "")
+TWITTER_API_SECRET: str = os.getenv("TWITTER_API_SECRET", "")
+TWITTER_ACCESS_TOKEN: str = os.getenv("TWITTER_ACCESS_TOKEN", "")
+TWITTER_ACCESS_TOKEN_SECRET: str = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", "")
+
+# Stripe
+STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
+
+# Email (Gmail SMTP)
+EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
+EMAIL_APP_PASSWORD: str = os.getenv("EMAIL_APP_PASSWORD", "")
+
 # Data directories
 DATA_DIR = Path(os.getenv("DATA_DIR", str(_ROOT / "data")))
 DB_PATH = DATA_DIR / "newsletters.db"

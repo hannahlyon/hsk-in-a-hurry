@@ -104,11 +104,12 @@ def _list_md_posts() -> list:
     if not _ARCHIVE_DIR.exists():
         return []
     posts = []
-    for path in sorted(_ARCHIVE_DIR.glob("*.md"), reverse=True):
+    for path in _ARCHIVE_DIR.glob("*.md"):
         try:
             posts.append(_parse_md_file(path))
         except Exception:
             pass
+    posts.sort(key=lambda p: p["created_at"] or "", reverse=True)
     return posts
 
 

@@ -23,6 +23,7 @@ STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
 # Email (Gmail SMTP)
 EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
 EMAIL_APP_PASSWORD: str = os.getenv("EMAIL_APP_PASSWORD", "")
+FALLBACK_EMAIL: str = os.getenv("FALLBACK_EMAIL", "")
 
 # Data directories
 DATA_DIR = Path(os.getenv("DATA_DIR", str(_ROOT / "data")))

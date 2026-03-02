@@ -17,7 +17,7 @@ PLATFORMS = {
         "hashtags": 10,
         "tone": "visual, inspirational, use emojis",
     },
-    "Twitter / X": {
+    "X / Twitter": {
         "image_size": "1792x1024",
         "caption_max": 280,
         "hashtags": 3,

@@ -1,4 +1,5 @@
 """Utility helpers: slugify, date formatting, sanitize."""
+import datetime as _dt
 import re
 import unicodedata
 from datetime import datetime
@@ -39,3 +40,10 @@ def truncate(text: str, max_len: int = 200, suffix: str = "...") -> str:
 def chunk_list(lst: list, size: int) -> list:
     """Split list into chunks of given size."""
     return [lst[i : i + size] for i in range(0, len(lst), size)]
+
+
+def build_frontmatter(title: str, level: str, language: str, exam: str,
+                      date: str | None = None) -> str:
+    date_str = date or _dt.date.today().isoformat()
+    tags = ", ".join(filter(None, [language.lower(), exam.lower(), level]))
+    return f"---\ntitle: {title}\ndate: {date_str}\nlevel: {level}\ntags: {tags}\n---\n\n"

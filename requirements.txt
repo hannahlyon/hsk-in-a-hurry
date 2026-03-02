@@ -1,4 +1,5 @@
 fastapi>=0.111.0
+tweepy>=4.14.0
 uvicorn[standard]>=0.29.0
 markdown>=3.6
 stripe>=9.0.0

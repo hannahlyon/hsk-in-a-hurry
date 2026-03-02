@@ -22,7 +22,7 @@ from config.settings import (
     DATA_DIR, SUBSTACK_COOKIE,
     TWITTER_API_KEY, TWITTER_API_SECRET,
     TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET,
-    STRIPE_SECRET_KEY, EMAIL_FROM, EMAIL_APP_PASSWORD,
+    STRIPE_SECRET_KEY, EMAIL_FROM, EMAIL_APP_PASSWORD, FALLBACK_EMAIL,
 )
 from database.db import (
     init_db,
@@ -33,6 +33,7 @@ from database.db import (
     insert_social_post,
 )
 from rag.generator import generate_content, generate_title
+from utils.helpers import build_frontmatter
 from rag.retriever import retrieve_for_generation, get_retrieval_ids
 from substack.auth import SubstackAuthError
 from substack.publisher import create_draft, publish_draft
@@ -184,14 +185,16 @@ def generate_content_endpoint(req: GenerateContentRequest):
         retrieval_ids=",".join(retrieval_ids) if retrieval_ids else None,
     )
 
+    content_with_frontmatter = build_frontmatter(title, req.level, language, exam) + content_raw
+
     return GenerateContentResponse(
         post_id=post_id,
         title=title,
         language=language,
         exam=exam,
         level=req.level,
-        content_preview=content_raw[:500],
-        content_raw=content_raw,
+        content_preview=content_with_frontmatter[:500],
+        content_raw=content_with_frontmatter,
         grammar_chunks_used=len(grammar_chunks),
         vocab_chunks_used=len(vocab_chunks),
     )
@@ -413,7 +416,9 @@ def send_lesson_endpoint(req: SendLessonRequest):
         emails = list(dict.fromkeys(emails))
 
     if not emails:
-        raise HTTPException(status_code=404, detail="No recipients found")
+        if not FALLBACK_EMAIL:
+            raise HTTPException(status_code=404, detail="No recipients found and FALLBACK_EMAIL not configured")
+        emails = [FALLBACK_EMAIL]
 
     # Build multipart email
     subject = req.subject or post["title"]

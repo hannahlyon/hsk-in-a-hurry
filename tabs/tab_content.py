@@ -13,6 +13,7 @@ from rag.generator import stream_content, generate_title
 from rag.retriever import retrieve_for_generation, get_retrieval_ids
 from vector_store.chroma_client import get_language_collection, collection_count
 from vector_store.embedder import embed_and_upsert, make_chunk_id
+from utils.helpers import build_frontmatter, slugify
 from utils.logger import get_logger
 
 log = get_logger(__name__)
@@ -278,11 +279,16 @@ def render():
         # Download as Markdown
         final_title = st.session_state.get("post_title_input", post_title)
         final_content = st.session_state.get("edited_content", full_content)
-        from utils.helpers import slugify
+
         filename = f"{slugify(final_title)}.md"
         st.download_button(
             label="Download as Markdown",
-            data=final_content,
+            data=build_frontmatter(
+                title=final_title,
+                level=gen_level,
+                language=nl["language"],
+                exam=nl["exam"],
+            ) + final_content,
             file_name=filename,
             mime="text/markdown",
         )
@@ -298,7 +304,7 @@ def render():
         st.info("No posts generated yet for this newsletter.")
     else:
         import pandas as pd
-        from utils.helpers import slugify
+
 
         # ── Filters ────────────────────────────────────────────
         all_levels = sorted({p["level"] for p in posts if p.get("level")})
@@ -376,7 +382,13 @@ def render():
                 if content:
                     st.download_button(
                         label="Download as Markdown",
-                        data=content,
+                        data=build_frontmatter(
+                            title=chosen_post.get("title", ""),
+                            level=chosen_post.get("level", ""),
+                            language=chosen_post.get("language", ""),
+                            exam=chosen_post.get("exam", ""),
+                            date=str(chosen_post.get("created_at") or "")[:10] or None,
+                        ) + content,
                         file_name=f"{slugify(chosen_post.get('title', 'post'))}.md",
                         mime="text/markdown",
                         key="browse_download",

@@ -29,6 +29,7 @@ from database.db import (
     get_newsletter,
     get_newsletters,
     get_generated_post,
+    get_generated_posts,
     insert_generated_post,
     insert_social_post,
 )
@@ -151,6 +152,16 @@ def random_params_endpoint(newsletter_id: int):
         theme=theme,
         content_format=content_format,
     )
+
+
+@router.get("/posts/today")
+def get_todays_posts():
+    """Return all generated posts from today with their full markdown content."""
+    from datetime import date
+    today = date.today().isoformat()
+    all_posts = get_generated_posts()
+    todays = [p for p in all_posts if (p.get("created_at") or "").startswith(today)]
+    return todays
 
 
 @router.post("/generate-content", response_model=GenerateContentResponse)
